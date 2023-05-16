@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,12 +17,26 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
 
-Auth::routes();
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/chat', [App\Http\Controllers\ChatsController::class, 'index']);
-Route::get('/messages', [App\Http\Controllers\ChatsController::class, 'fetchMessages']);
-Route::post('/messages', [App\Http\Controllers\ChatsController::class, 'sendMessage']);
+Route::middleware('auth')->group(function () {
+
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index']);
+    Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store']);
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
