@@ -36,6 +36,11 @@ export default {
         }
     },
 
+    created() {
+        window.Echo.channel('store_message')
+            .listen('')
+    },
+
     methods: {
         store() {
             axios.post('/messages', {body: this.body})
